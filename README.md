@@ -95,3 +95,5 @@ groupId: 长连接channel的组id，用于对一个组别批量通知
 timestamp: 消息时间戳  
 ackMessage: 回复消息，表示数据成功处理后要回复给客户端的消息,可以看做是客户端重发需要回复的ack   
 ```
+
+## DEMO 请移步[netty-server-demo](https://github.com/BaoziruqinLRL/netty-server-demo) 和 [netty-client-demo](https://github.com/BaoziruqinLRL/netty-client-demo). 启动即可测试.
