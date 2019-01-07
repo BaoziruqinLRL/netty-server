@@ -1,24 +1,21 @@
-package com.baozi.util;
+package com.baozi.code;
 
-import com.alibaba.fastjson.JSON;
 import com.baozi.constructor.ServerConstructor;
 import com.baozi.data.TransferData;
+import com.baozi.util.KeyUtil;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * @Description: websocket消息解析
+ * @Description: 抽象的消息解析实现,封装了心跳消息解析和ACK回复解析,
+ * 具体的子实现类只需要实现businessDecode
  * @Author: baozi
- * @Create: 2018-09-25 10:53
+ * @Create: 2019-01-07 12:30
  */
-public class WebSocketFrameUtil {
+public abstract class AbstractBusinessMessageDecoder implements BusinessMessageDecoder {
 
-    /**
-     * webSocket 消息解析
-     * @param frame 消息
-     * @return 解析结果
-     */
-    public static TransferData decode(TextWebSocketFrame frame) {
+    @Override
+    public TransferData decode(TextWebSocketFrame frame) {
         String text = frame.text();
         if (StringUtils.isEmpty(text)){
             return new TransferData();
@@ -32,8 +29,15 @@ public class WebSocketFrameUtil {
             // ack回复
             transferData.setAck(text);
         }else{
-            transferData = JSON.parseObject(text,TransferData.class);
+            transferData = businessDecode(text);
         }
         return transferData;
     }
+
+    /**
+     * 业务实现类,子实现只需要关心将业务数据类型转换成transferData即可,无需关心心跳和ACK类型的消息判断
+     * @param text 消息字符串
+     * @return 解析结果
+     */
+    protected abstract TransferData businessDecode(String text);
 }

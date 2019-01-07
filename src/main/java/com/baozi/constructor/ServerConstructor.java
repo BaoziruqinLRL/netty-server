@@ -4,10 +4,15 @@ import com.baozi.bootstrap.NettyServerBootstrap;
 import com.baozi.business.BusinessExecutor;
 import com.baozi.business.impl.DefaultLostConnectExecutor;
 import com.baozi.cache.ChannelCache;
+import com.baozi.code.BusinessMessageDecoder;
+import com.baozi.code.BusinessMessageEncoder;
+import com.baozi.code.impl.JsonBusinessMessageDecoder;
+import com.baozi.code.impl.JsonBusinessMessageEncoder;
 import com.baozi.constant.ExecutorConstant;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @Description: 服务构造器，这里将会用传入的参数构造并启动netty，依赖方只需构造这个方法即可
@@ -51,6 +56,16 @@ public class ServerConstructor {
      */
     private static long[] resendTimeWheel;
 
+    /**
+     * 消息解析器
+     */
+    private static BusinessMessageDecoder businessMessageDecode;
+
+    /**
+     * 重发数据构造器
+     */
+    private static BusinessMessageEncoder businessMessageEncoder;
+
     public static void start(){
         // 设定一个默认的失联回调接口
         if (ChannelCache.getExecutor(ExecutorConstant.LOST_CONNECT_KEY) == null){
@@ -58,6 +73,10 @@ public class ServerConstructor {
             lostMap.put(ExecutorConstant.LOST_CONNECT_KEY,new DefaultLostConnectExecutor());
             ChannelCache.setExecutorMap(lostMap);
         }
+        // 设定默认的消息解析器
+        businessMessageDecode = Optional.ofNullable(businessMessageDecode).orElse(new JsonBusinessMessageDecoder());
+        // 设定默认的重发数据构造器
+        businessMessageEncoder = Optional.ofNullable(businessMessageEncoder).orElse(new JsonBusinessMessageEncoder());
         new NettyServerBootstrap().start();
     }
 
@@ -111,5 +130,21 @@ public class ServerConstructor {
 
     public static long[] getResendTimeWheel(){
         return ServerConstructor.resendTimeWheel;
+    }
+
+    public static BusinessMessageDecoder getBusinessMessageDecode() {
+        return businessMessageDecode;
+    }
+
+    public static void setBusinessMessageDecode(BusinessMessageDecoder businessMessageDecode) {
+        ServerConstructor.businessMessageDecode = businessMessageDecode;
+    }
+
+    public static BusinessMessageEncoder getBusinessMessageEncoder() {
+        return businessMessageEncoder;
+    }
+
+    public static void setBusinessMessageEncoder(BusinessMessageEncoder businessMessageEncoder) {
+        ServerConstructor.businessMessageEncoder = businessMessageEncoder;
     }
 }

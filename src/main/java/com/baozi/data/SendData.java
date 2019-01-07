@@ -19,4 +19,9 @@ public class SendData {
      * 实际消息
      */
     private String content;
+
+    /**
+     * 操作类型
+     */
+    private String type;
 }

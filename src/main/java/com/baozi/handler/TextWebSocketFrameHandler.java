@@ -8,7 +8,6 @@ import com.baozi.data.ChannelParam;
 import com.baozi.data.TransferData;
 import com.baozi.retry.RetryCache;
 import com.baozi.util.KeyUtil;
-import com.baozi.util.WebSocketFrameUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.socket.ChannelInputShutdownEvent;
@@ -98,7 +97,7 @@ public class TextWebSocketFrameHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext channelHandlerContext, Object msg) {
         if (msg instanceof TextWebSocketFrame) {
             try {
-                TransferData transferData = WebSocketFrameUtil.decode((TextWebSocketFrame) msg);
+                TransferData transferData = ServerConstructor.getBusinessMessageDecode().decode((TextWebSocketFrame) msg);
                 if (heartbeatReply(transferData, channelHandlerContext)) {
                     // 收到客户端心跳，心跳计数器清0
                     heartbeatCount.set(0);
