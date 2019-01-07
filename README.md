@@ -20,6 +20,9 @@ public class ServerBootConfig{
         // 毫秒级时间
         ServerConstructor.setResendTimeWheel(new long[]{100,500,1000,5000});
         ServerConstructor.setServerHeartbeat(false);
+        // 可自定义消息解析器和重发数据构造器
+        ServerConstructor.setBusinessMessageDecode(new MapBusinessMessageDecoder());
+        ServerConstructor.setBusinessMessageEncode(new JsonBusinessMessageEncoder());
         // 启动
         serverConstructor.start();
     }
@@ -32,6 +35,8 @@ public class ServerBootConfig{
 `serverHeartBeat`: `boolean 是否开启服务端主动心跳`  
 `executorMap`: `Map<String,BusinessExecutor> 执行器map，key为消息类型，value为对应类型的执行器（执行器由依赖方实现BusinessExecutor接口）.其中ExecutorConstant.LOST_CONNECT_KEY若不设置则会默认设置一个空实现的失联通知器,且不影响已有业务.`  
 `resendTimeWheel`: `重试时间片间隔,可定义任意长度的long数组.重试时若设置了可靠消息,则会以时间片间隔的最后一个重试时间无限重试`
+`businessMessageDecoder`: `消息解析器,可实现BusinessMessageDecoder接口自定义实现,不传则默认使用内置的Json解析器`
+`businessMessageEncode`: `发送数据构造器,可实现BusinessMessageEncoder接口自定义实现,不传则默认使用内置的Json构造器`
 
 ## 消息通知说明
 ### 发送单向通知
@@ -48,8 +53,8 @@ BusinessNotify.noticeSingleClient(clientId, msg, true, reliable);
 BusinessNotify.noticeGroup(groupId,msg);
 ```
 目前组通知不支持重试
-## 重试数据结构说明
-重试数据结构为一个固定结构,如下:
+## 默认发送的数据结构说明
+默认发送的数据结构为一个固定结构,如下:
 ```
 @Data
 public class SendData {
@@ -63,9 +68,15 @@ public class SendData {
      * 实际消息
      */
     private String content;
+    
+    /**
+     * 传输类型
+     */
+    private String type;
 }
 ```
-其中ack为客户端需要回复的确认收货的消息,客户端只需在接收到消息后直接回复ack对应的数据即可确认;content为实际消息
+其中ack为客户端需要回复的确认收货的消息,客户端只需在接收到消息后直接回复ack对应的数据即可确认;content为实际消息.
+服务器可以自己实现BusinessMessageEncoder接口,以构建自定义的数据结构.
 ## BusinessExecutor说明
 业务执行接口，接口仅有一个exec方法，依赖方可以根据不同的业务做不同的实现，并赋予不同的type，在服务初始化时将所有Executor通过ServerConstructor进行初始化. 所有Executor接收的数据类型为固定类型,如下:
 ```
@@ -95,5 +106,12 @@ groupId: 长连接channel的组id，用于对一个组别批量通知
 timestamp: 消息时间戳  
 ackMessage: 回复消息，表示数据成功处理后要回复给客户端的消息,可以看做是客户端重发需要回复的ack   
 ```
+## BusinessMessageEncoder说明
+重发数据构造接口,构造发送的数据.
+内置了JsonBusinessMessageEncoder.
+
+## BusinessMessageDecoder说明
+消息解析器,需要将消息解析成TransferData结构.
+内置了JsonBusinessMessageDecoder和MapBusinessMessageDecoder.
 
 ## DEMO 请移步[netty-server-demo](https://github.com/BaoziruqinLRL/netty-server-demo) 和 [netty-client-demo](https://github.com/BaoziruqinLRL/netty-client-demo). 启动即可测试.
