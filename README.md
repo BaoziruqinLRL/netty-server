@@ -108,7 +108,7 @@ ackMessage: 回复消息，表示数据成功处理后要回复给客户端的�
 ```
 ## BusinessMessageEncoder说明
 重发数据构造接口,构造发送的数据.
-内置了JsonBusinessMessageEncoder.
+内置了JsonBusinessMessageEncoder和OriginBusinessMessageEncoder.
 
 ## BusinessMessageDecoder说明
 消息解析器,需要将消息解析成TransferData结构.
