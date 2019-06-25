@@ -17,7 +17,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @version 1.0 2017-12-13 17:32:34
  * @since 1.5
- * @author dongbin大佬
+ * @author dongbin
  */
 public class TimerWheel<T> {
 

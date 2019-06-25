@@ -16,7 +16,7 @@ import java.util.Optional;
 
 /**
  * @Description: 服务构造器，这里将会用传入的参数构造并启动netty，依赖方只需构造这个方法即可
- * @Author: baozi
+ * @Author: lirl
  * @Create: 2018-09-25 15:15
  */
 public class ServerConstructor {
@@ -37,19 +37,39 @@ public class ServerConstructor {
     private static int poolSize;
 
     /**
-     * 心跳发起类型
+     * 客户端心跳类型
      */
-    private static String heartbeatType = "heartbeat-request";
+    private static String heartbeatType;
 
     /**
-     * 心跳回复类型
+     * 服务端心跳回复类型
      */
-    private static String heartbeatReply = "heartbeat-response";
+    private static String heartbeatReply;
 
     /**
      * 是否开启服务端主动心跳
      */
     private static boolean serverHeartbeat;
+
+    /**
+     * 是否开启ssl
+     */
+    private static boolean ssl;
+
+    /**
+     * ssl证书类型
+     */
+    private static String sslKeyType;
+
+    /**
+     * ssl证书路径
+     */
+    private static String sslKeyPath;
+
+    /**
+     * ssl证书密码
+     */
+    private static String sslKeyPwd;
 
     /**
      * 重发间隔,可定义任意长度的重发时间
@@ -69,7 +89,7 @@ public class ServerConstructor {
     public static void start(){
         // 设定一个默认的失联回调接口
         if (ChannelCache.getExecutor(ExecutorConstant.LOST_CONNECT_KEY) == null){
-            var lostMap = new HashMap<String, BusinessExecutor>(1);
+            var lostMap = new HashMap<String,BusinessExecutor>(1);
             lostMap.put(ExecutorConstant.LOST_CONNECT_KEY,new DefaultLostConnectExecutor());
             ChannelCache.setExecutorMap(lostMap);
         }
@@ -77,7 +97,8 @@ public class ServerConstructor {
         businessMessageDecode = Optional.ofNullable(businessMessageDecode).orElse(new JsonBusinessMessageDecoder());
         // 设定默认的重发数据构造器
         businessMessageEncoder = Optional.ofNullable(businessMessageEncoder).orElse(new JsonBusinessMessageEncoder());
-        new NettyServerBootstrap().start();
+        NettyServerBootstrap serverBootstrap = new NettyServerBootstrap(port);
+        serverBootstrap.start(heartbeatType,heartbeatReply,serverHeartbeat);
     }
 
     public static void setExecutorMap(Map<String, BusinessExecutor> executorMap) {
@@ -86,10 +107,6 @@ public class ServerConstructor {
 
     public static void setPort(int port){
         ServerConstructor.port = port;
-    }
-
-    public static int getPort(){
-        return ServerConstructor.port;
     }
 
     public static void setAliveTime(long aliveTime){
@@ -104,24 +121,52 @@ public class ServerConstructor {
         ServerConstructor.heartbeatType = heartbeatType;
     }
 
+    public static String getHeartbeatType(){
+        return heartbeatType;
+    }
+
     public static void setHeartbeatReply(String heartbeatReply){
         ServerConstructor.heartbeatReply = heartbeatReply;
     }
 
-    public static String getHeartbeatType(){
-        return ServerConstructor.heartbeatType;
+    public static String getHeartbeatReply(){
+        return heartbeatReply;
     }
 
-    public static String getHeartbeatReply(){
-        return ServerConstructor.heartbeatReply;
+    public static void setSsl(boolean ssl){
+        ServerConstructor.ssl = ssl;
+    }
+
+    public static boolean getSsl(){
+        return ServerConstructor.ssl;
+    }
+
+    public static void setSslKeyType(String sslKeyType){
+        ServerConstructor.sslKeyType = sslKeyType;
+    }
+
+    public static String getSslKeyType(){
+        return ServerConstructor.sslKeyType;
+    }
+
+    public static void setSslKeyPath(String sslKeyPath){
+        ServerConstructor.sslKeyPath = sslKeyPath;
+    }
+
+    public static String getSslKeyPath(){
+        return ServerConstructor.sslKeyPath;
+    }
+
+    public static void setSslKeyPwd(String sslKeyPwd){
+        ServerConstructor.sslKeyPwd = sslKeyPwd;
+    }
+
+    public static String getSslKeyPwd(){
+        return ServerConstructor.sslKeyPwd;
     }
 
     public static void setServerHeartbeat(boolean serverHeartbeat){
         ServerConstructor.serverHeartbeat = serverHeartbeat;
-    }
-
-    public static boolean isServerHeartbeat(){
-        return ServerConstructor.serverHeartbeat;
     }
 
     public static void setResendTimeWheel(long[] resendTimeWheel){
@@ -129,7 +174,7 @@ public class ServerConstructor {
     }
 
     public static long[] getResendTimeWheel(){
-        return ServerConstructor.resendTimeWheel;
+        return resendTimeWheel;
     }
 
     public static BusinessMessageDecoder getBusinessMessageDecode() {

@@ -10,7 +10,7 @@ package com.baozi.util.timewheel;
  * @version 1.0 2017-12-13 17:37:38
  * @param <T> 超时的目标.
  * @since 1.5
- * @author dongbin大佬
+ * @author dongbin
  */
 public interface TimeoutNotification<T> {
 

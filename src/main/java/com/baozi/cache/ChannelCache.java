@@ -56,6 +56,7 @@ public class ChannelCache {
         if (value != null){
             if (channel.getLastTimestamp() > value.getLastTimestamp()){
                 allUser.put(channel.getClientId(),channel);
+                allUserByChannelId.remove(value.getChannel().id());
                 allUserByChannelId.put(channel.getChannel().id(),channel);
                 userStore = true;
             }
@@ -67,6 +68,9 @@ public class ChannelCache {
         if (userStore){
             if (restChannelGroup.containsKey(channel.getGroupId())){
                 var group = restChannelGroup.get(channel.getGroupId());
+                if (value != null) {
+                    group.remove(value.getChannel());
+                }
                 group.add(channel.getChannel());
             }else{
                 ChannelGroup group = new DefaultChannelGroup(ImmediateEventExecutor.INSTANCE);

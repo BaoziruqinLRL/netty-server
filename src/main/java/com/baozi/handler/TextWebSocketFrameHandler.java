@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @Description: websocket消息处理器
- * @Author: baozi
+ * @Author: lirl
  * @Create: 2018-09-25 11:00
  */
 public class TextWebSocketFrameHandler extends ChannelInboundHandlerAdapter {
@@ -42,21 +42,37 @@ public class TextWebSocketFrameHandler extends ChannelInboundHandlerAdapter {
     private AtomicInteger heartbeatCount = new AtomicInteger(0);
 
     /**
+     * 默认的服务器发送心跳消息，没有初始化则以该消息作为心跳回复
+     */
+    private static final String SERVER_HEARTBEAT = "server-heartbeat";
+
+    /**
+     * 默认的接收客户端心跳消息
+     */
+    private static final String CLIENT_HEARTBEAT = "client-heartbeat";
+
+    /**
      * 初始化传入的心跳消息type
      */
-    private String heartbeatType = ServerConstructor.getHeartbeatType();
+    private String heartbeatType;
 
     /**
      * 初始化设置的心跳消息回复type
      */
-    private String heartbeatReplyType = ServerConstructor.getHeartbeatReply();
+    private String heartbeatReplyType;
 
     /**
      * 服务器主动心跳
      */
-    private boolean serverHeartbeat = Optional.of(ServerConstructor.isServerHeartbeat()).orElse(false);
+    private boolean serverHeartbeat;
 
     private static final Logger log = LoggerFactory.getLogger(TextWebSocketFrame.class);
+
+    public TextWebSocketFrameHandler(String heartbeatType, String heartbeatReplyType, boolean serverHeartbeat) {
+        this.heartbeatType = heartbeatType;
+        this.heartbeatReplyType = heartbeatReplyType;
+        this.serverHeartbeat = serverHeartbeat;
+    }
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
@@ -71,7 +87,7 @@ public class TextWebSocketFrameHandler extends ChannelInboundHandlerAdapter {
                     // 丢失连接，关闭channel，清除缓存
                     ctx.close().sync();
                     ChannelParam param = ChannelCache.removeChannelByChannelId(ctx.channel().id());
-                    log.warn(MessageFormat.format("Client {0} lost connection...", (param == null) ? null : param.getClientId()));
+                    log.warn(MessageFormat.format("Client {0} lost connection...",(param == null)?null:param.getClientId()));
                     // 通知失联回调
                     TransferData transferData = new TransferData();
                     transferData.setType(ExecutorConstant.LOST_CONNECT_KEY);
@@ -80,7 +96,7 @@ public class TextWebSocketFrameHandler extends ChannelInboundHandlerAdapter {
                 }else{
                     // 如果设置了需要服务器主动心跳，则会主动发起心跳消息
                     if (serverHeartbeat) {
-                        ctx.channel().writeAndFlush(new TextWebSocketFrame(heartbeatType));
+                        ctx.channel().writeAndFlush(new TextWebSocketFrame((heartbeatReplyType == null) ? SERVER_HEARTBEAT : heartbeatReplyType));
                     }
                     heartbeatCount.incrementAndGet();
                 }
@@ -135,11 +151,14 @@ public class TextWebSocketFrameHandler extends ChannelInboundHandlerAdapter {
      * @param transferData 消息
      * @return 返回判断结果
      */
-    private boolean heartbeatReply(TransferData transferData, ChannelHandlerContext channelHandlerContext) {
-        if (heartbeatType.equals(transferData.getType())) {
+    private boolean heartbeatReply(TransferData transferData,ChannelHandlerContext channelHandlerContext) {
+        if (heartbeatType != null && heartbeatType.equals(transferData.getType())){
+            // 收到客户端主动心跳，回复心跳响应
             channelHandlerContext.writeAndFlush(new TextWebSocketFrame(heartbeatReplyType));
             return true;
-        }else if (heartbeatReplyType.equals(transferData.getType())){
+        }else if (heartbeatReplyType != null && heartbeatReplyType.equals(transferData.getType())){
+            return true;
+        }else if (CLIENT_HEARTBEAT.equals(transferData.getType())){
             return true;
         }else{
             return false;
