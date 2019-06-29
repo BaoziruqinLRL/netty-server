@@ -23,6 +23,11 @@ public class ServerBootConfig{
         // 可自定义消息解析器和重发数据构造器
         ServerConstructor.setBusinessMessageDecode(new MapBusinessMessageDecoder());
         ServerConstructor.setBusinessMessageEncode(new JsonBusinessMessageEncoder());
+        // ssl配置，可以不开启
+        ServerConstructor.setSsl(true);
+        ServerConstructor.setSslKeyType(type);
+        ServerConstructor.setSslKeyPath(path);
+        ServerConstructor.setSslKeyPwd(password);
         // 启动
         serverConstructor.start();
     }
