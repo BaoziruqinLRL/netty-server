@@ -25,7 +25,7 @@
         <maven.compiler.source>10</maven.compiler.source>
         <maven.compiler.target>10</maven.compiler.target>
         <netty.version>4.1.29.Final</netty.version>
-        <spring.boot.redis.version>2.0.4.RELEASE</spring.boot.redis.version>
+        <spring.boot.redis.version>2.5.12</spring.boot.redis.version>
         <fastjson.version>1.2.49</fastjson.version>
         <lombok.version>1.18.2</lombok.version>
         <commons.lang3.version>3.8.1</commons.lang3.version>
